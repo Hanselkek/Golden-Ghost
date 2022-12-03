@@ -4,11 +4,29 @@ kaboom({
     background: [27, 141, 247]
 })
 
+let level = 1
+
 loadSprite("blob", "assets/blob.png")
 loadSprite("sun", "assets/sun.png")
 loadSprite("coin", "assets/coin.png")
 loadSprite("block", "assets/block.png")
+
 // Player
+function add_button(txt, p, f, s)
+{
+    const btn = add([
+        text(txt),
+        pos(p),
+        area({ cursor: "pointer",}),
+        scale(s),
+        origin("center")
+    ])
+
+    btn.onClick(f)
+
+    return btn
+}
+
 function jump(player)
 {
     onKeyPress("space", () => {
@@ -50,6 +68,7 @@ function on_coin_collision(player)
         
         const coins = get("coin")
         if (coins.length <= 0){
+            level++
             go("win")
         }
     })
@@ -85,7 +104,37 @@ function add_level_1()
     })
 }
 
-function add_game_floor1()
+function add_level_2()
+{
+    addLevel([
+        "   $    $     $  ",
+        "  aaaaaaaa   aaa ",
+        "                 ",
+        " $             $ ",
+        "aaaa      aaaaaaa",
+        ],{
+        width: 64,
+        height: 64,
+        pos: vec2(300, 200),
+    
+        "$": () => [
+            sprite("coin"),
+            scale(0.05),
+            area(),
+            solid(),
+            "coin",
+        ],
+    
+        "a": () => [
+            sprite("block"),
+            scale(0.1),
+            area(),
+            solid(),
+        ],
+        })
+}
+
+function add_game_floor()
 {
     const floor = add([
         rect(width(), 48),
@@ -111,7 +160,7 @@ function add_sun(){
 
 let main_game = scene("main_game", () => {
     const player = add_player()
-    const floor = add_game_floor1()
+    const floor = add_game_floor()
     const sun = add_sun()
 
     jump(player)
@@ -121,13 +170,36 @@ let main_game = scene("main_game", () => {
     add_level_1()
 })
 
+let main_game2 = scene("main_game2", () => {
+    const player = add_player()
+    const floor = add_game_floor()
+    const sun = add_sun()
+
+    jump(player)
+    movement(player)
+    on_coin_collision(player)
+
+    add_level_2()
+})
+
 let won_screen = scene("win", () => {
-    const txt = add([
-        text("You won!"),
-        pos(center()),
-        scale(1.5),
-        origin("center")
-    ])
+    const playBtn = add_button("Next Level", vec2(200, 150), () => {
+        if (level <= 2)
+        {
+            go("main_game" + level)
+        }
+        else
+        {
+            go("main_game")
+            level = 1
+        }
+    }, 0.8)
+    const quitBtn = add_button("Quit", vec2(200, 300), () => {
+        go("main_game")
+        level = 1
+    }, 0.9)
+
+    onUpdate(() => cursor("default"))
 })
 
 go("main_game")
